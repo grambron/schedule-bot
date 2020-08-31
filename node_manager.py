@@ -1,10 +1,12 @@
 from reply_node import ReplyNode
 import database
+from action_manager import ActionManager
 
 
 class NodeManager:
     def __init__(self):
         self.db = database.DataBase()
+        self.action_manager = ActionManager()
         # self.nodes = self.db.get_nodes()
 
     def get_start_node(self):
@@ -15,13 +17,13 @@ class NodeManager:
         )
         return reply
 
-    def get_node(self, message):
+    def get_node_id(self, message):
         user_id = message.from_user.id
         text = message.text
         status = self.db.get_status(user_id)
         try:
             next_node_id = self.db.get_next_node(text, status)
-        # if self.db.check_buttons(next_node_id):
+            self.action_manager.check_action(next_node_id)
             self.db.change_status(user_id, next_node_id)
             reply = ReplyNode(
                 self.db.get_reply_buttons(next_node_id),

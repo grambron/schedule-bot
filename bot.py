@@ -19,9 +19,9 @@ async def start_message(message: types.Message):
 
 @dp.message_handler(content_types=['text'])
 async def send_text(message: types.Message):
-    node = node_client.get_node(message)
+    node = node_client.get_node_id(message)
     keyboard = new_keyboard(node.buttons)
-    await message.answer(node.text, reply_markup=keyboard)
+    await message.answer(node.text, reply_markup=keyboard, parse_mode='markdown')
 
 
 if __name__ == '__main__':

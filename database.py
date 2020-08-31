@@ -31,19 +31,20 @@ class DataBase(metaclass=SingletonMeta):
             self.nodes[row[1]] = row[0]
         return self.nodes
 
-    def get_status(self, user):
+    def get_from_db(self, query, *param):
         cursor = self.cursor()
+        cursor.execute(query, param)
+        return cursor.fetchall()[0][0]
+
+    def get_status(self, user):
         query = "SELECT node_id from users where user_id=%s"
-        cursor.execute(query, (user,))
-        self.status = cursor.fetchall()
-        return self.status[0][0]
+        self.status = self.get_from_db(query, user)
+        return self.status
 
     def get_next_node(self, text, status):
-        cursor = self.cursor()
         query = "SELECT next_node from buttons where text=%s AND id=%s"
-        cursor.execute(query, (text, status))
-        self.next_node = cursor.fetchall()
-        return self.next_node[0][0]
+        self.next_node = self.get_from_db(query, text, status)
+        return self.next_node
 
     def get_reply_buttons(self, next_node_id):
         cursor = self.cursor()
@@ -52,22 +53,21 @@ class DataBase(metaclass=SingletonMeta):
         return cursor.fetchall()
 
     def get_reply_text(self, next_node_id):
-        cursor = self.cursor()
         query = "SELECT text from node_text where id=%s"
-        cursor.execute(query, (next_node_id,))
-        return cursor.fetchall()[0][0]
+        return self.get_from_db(query, next_node_id)
+
+    def update_db(self, query, *params):
+        cursor = self.cursor()
+        cursor.execute(query, params)
+        self.connection.commit()
 
     def change_status(self, user_id, next_node_id):
-        cursor = self.cursor()
         query = "UPDATE users SET node_id=%s WHERE user_id=%s"
-        cursor.execute(query, (next_node_id, user_id))
-        self.connection.commit()
+        self.update_db(query, next_node_id, user_id)
 
     def add_user(self, user_id, username):
-        cursor = self.cursor()
         query = "INSERT INTO users VALUES(%s, 'MENU', %s)"
-        cursor.execute(query, (user_id, username))
-        self.connection.commit()
+        self.update_db(query, user_id, username)
 
     def check(self, user_id):
         cursor = self.cursor()
@@ -75,11 +75,9 @@ class DataBase(metaclass=SingletonMeta):
         cursor.execute(query, (user_id,))
         return cursor.fetchall()
 
-    # def check_buttons(self, next_node_id):
-    #     cursor = self.cursor()
-    #     query = "SELECT id from node_text WHERE id=%s"
-    #     cursor.execute(query, (next_node_id,))
-    #     return cursor.fetchall()
+    def action(self, next_node_id):
+        query = "SELECT action from node_text WHERE id=%s"
+        return self.get_from_db(query, next_node_id)
 
     def cursor(self):
         return self.connection.cursor()
