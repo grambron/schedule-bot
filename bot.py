@@ -1,6 +1,6 @@
 from aiogram import Bot, Dispatcher, executor, types
 from node_manager import NodeManager
-from keyboards import new_keyboard
+from keyboards import new_keyboard, new_inline_keyboard
 import configurer
 
 bot = Bot(configurer.config['BOT']['token'])
@@ -20,8 +20,14 @@ async def start_message(message: types.Message):
 @dp.message_handler(content_types=['text'])
 async def send_text(message: types.Message):
     node = node_client.get_node_id(message)
-    keyboard = new_keyboard(node.buttons)
-    await message.answer(node.text, reply_markup=keyboard, parse_mode='markdown')
+    if node_client.check_inline_reply(node.node_id):
+        keyboard = new_inline_keyboard(node.text)
+        await message.answer("Переходи по ссылке:", reply_markup=keyboard)
+    else:
+        if node.text is not configurer.config['REPLY']['unfinished']:
+            node_client.change_status(message)
+        keyboard = new_keyboard(node.buttons)
+        await message.answer(node.text, reply_markup=keyboard)
 
 
 if __name__ == '__main__':

@@ -6,3 +6,9 @@ def new_keyboard(buttons):
     for button in buttons:
         kb.add(types.KeyboardButton(button[0]))
     return kb
+
+
+def new_inline_keyboard(text):
+    return types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton(text="тык", url=text)
+    )

@@ -1,6 +1,7 @@
 from reply_node import ReplyNode
 import database
 from action_manager import ActionManager
+import configurer
 
 
 class NodeManager:
@@ -18,13 +19,10 @@ class NodeManager:
         return reply
 
     def get_node_id(self, message):
-        user_id = message.from_user.id
-        text = message.text
-        status = self.db.get_status(user_id)
+        status = self.db.get_status(message.from_user.id)
+        next_node_id = self.db.get_next_node(message.text, status)
         try:
-            next_node_id = self.db.get_next_node(text, status)
             self.action_manager.check_action(next_node_id)
-            self.db.change_status(user_id, next_node_id)
             reply = ReplyNode(
                 self.db.get_reply_buttons(next_node_id),
                 self.db.get_reply_text(next_node_id),
@@ -33,7 +31,7 @@ class NodeManager:
         except IndexError:
             reply = ReplyNode(
                 self.db.get_reply_buttons(status),
-                "Извини, этот раздел пока не готов",
+                configurer.config['REPLY']['unfinished'],
                 status
             )
             return reply
@@ -43,3 +41,11 @@ class NodeManager:
             self.db.add_user(user_id, username)
         else:
             self.db.change_status(user_id, 'MENU')
+
+    def check_inline_reply(self, node_id):
+        return self.db.check_inline_reply(node_id)
+
+    def change_status(self, message):
+        status = self.db.get_status(message.from_user.id)
+        next_node_id = self.db.get_next_node(message.text, status)
+        self.db.change_status(message.from_user.id, next_node_id)

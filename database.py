@@ -24,13 +24,6 @@ class DataBase(metaclass=SingletonMeta):
         self.status = ""
         self.next_node = ""
 
-    def get_nodes(self):
-        self.connection.cursor().execute("SELECT * from node_text")
-        rows = self.connection.cursor().fetchall()
-        for row in rows:
-            self.nodes[row[1]] = row[0]
-        return self.nodes
-
     def get_from_db(self, query, *param):
         cursor = self.cursor()
         cursor.execute(query, param)
@@ -81,3 +74,7 @@ class DataBase(metaclass=SingletonMeta):
 
     def cursor(self):
         return self.connection.cursor()
+
+    def check_inline_reply(self, node_id):
+        query = "SELECT inline from node_text WHERE id=%s"
+        return self.get_from_db(query, node_id)
