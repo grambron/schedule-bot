@@ -21,14 +21,13 @@ class NodeManager:
     def get_node_id(self, message):
         status = self.db.get_status(message.from_user.id)
         next_node_id = self.db.get_next_node(message.text, status)
-        try:
-            self.action_manager.check_action(next_node_id)
+        if self.action_manager.check_action(next_node_id):
             reply = ReplyNode(
                 self.db.get_reply_buttons(next_node_id),
                 self.db.get_reply_text(next_node_id),
                 next_node_id)
             return reply
-        except IndexError:
+        else:
             reply = ReplyNode(
                 self.db.get_reply_buttons(status),
                 configurer.config['REPLY']['unfinished'],

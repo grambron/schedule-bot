@@ -27,7 +27,10 @@ class DataBase(metaclass=SingletonMeta):
     def get_from_db(self, query, *param):
         cursor = self.cursor()
         cursor.execute(query, param)
-        return cursor.fetchall()[0][0]
+        res = cursor.fetchone()
+        if res is None:
+            return 0
+        return res[0]
 
     def get_status(self, user):
         query = "SELECT node_id from users where user_id=%s"

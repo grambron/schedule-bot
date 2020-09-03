@@ -19,5 +19,6 @@ class ActionManager(metaclass=SingletonMeta):
 
     def check_action(self, next_node_id):
         action = self.db.action(next_node_id)
-        if action != 'NONE':
+        if action != 'NONE' and action != 0:
             self.invokers[action].action()
+        return action
