@@ -24,7 +24,8 @@ async def send_text(message: types.Message):
         keyboard = new_inline_keyboard(node.text)
         await message.answer("Переходи по ссылке:", reply_markup=keyboard)
     else:
-        if node.text is not configurer.config['REPLY']['unfinished']:
+        if node.text is not configurer.config['REPLY']['unfinished'] \
+                and node.action is None:
             node_client.change_status(message)
         keyboard = new_keyboard(node.buttons)
         await message.answer(node.text, reply_markup=keyboard)

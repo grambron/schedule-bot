@@ -20,20 +20,26 @@ class NodeManager:
 
     def get_node_id(self, message):
         status = self.db.get_status(message.from_user.id)
-        next_node_id = self.db.get_next_node(message.text, status)
-        if self.action_manager.check_action(next_node_id):
+        role = self.db.get_role(message.from_user.id)
+        next_node_id = self.db.get_next_node(message.text, status, role)
+        action = self.action_manager.check_action(next_node_id)
+        if action == "NONE":
             reply = ReplyNode(
-                self.db.get_reply_buttons(next_node_id),
+                self.db.get_reply_buttons(next_node_id, role),
                 self.db.get_reply_text(next_node_id),
-                next_node_id)
-            return reply
-        else:
-            reply = ReplyNode(
-                self.db.get_reply_buttons(status),
-                configurer.config['REPLY']['unfinished'],
-                status
+                next_node_id,
+                None
             )
             return reply
+        elif action == 0:
+            reply = ReplyNode(
+                self.db.get_reply_buttons(status, role),
+                configurer.config['REPLY']['unfinished'],
+                status,
+            )
+            return reply
+        else:
+            return self.action_manager.get_node(action, status, message, role)
 
     def add_user(self, user_id, username):
         if not self.db.check(user_id):
@@ -46,5 +52,6 @@ class NodeManager:
 
     def change_status(self, message):
         status = self.db.get_status(message.from_user.id)
-        next_node_id = self.db.get_next_node(message.text, status)
+        role = self.db.get_status(message.from_user.id)
+        next_node_id = self.db.get_next_node(message.text, status, role)
         self.db.change_status(message.from_user.id, next_node_id)

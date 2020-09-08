@@ -37,15 +37,15 @@ class DataBase(metaclass=SingletonMeta):
         self.status = self.get_from_db(query, user)
         return self.status
 
-    def get_next_node(self, text, status):
-        query = "SELECT next_node from buttons where text=%s AND id=%s"
-        self.next_node = self.get_from_db(query, text, status)
+    def get_next_node(self, text, status, role):
+        query = "SELECT next_node from buttons where text=%s AND id=%s and (role=%s or role = 'USER')"
+        self.next_node = self.get_from_db(query, text, status, role)
         return self.next_node
 
-    def get_reply_buttons(self, next_node_id):
+    def get_reply_buttons(self, next_node_id, role):
         cursor = self.cursor()
-        query = "SELECT text from buttons where id=%s"
-        cursor.execute(query, (next_node_id,))
+        query = "SELECT text from buttons where id=%s and (role=%s or role='USER')"
+        cursor.execute(query, (next_node_id, role))
         return cursor.fetchall()
 
     def get_reply_text(self, next_node_id):
@@ -81,3 +81,41 @@ class DataBase(metaclass=SingletonMeta):
     def check_inline_reply(self, node_id):
         query = "SELECT inline from node_text WHERE id=%s"
         return self.get_from_db(query, node_id)
+
+    def get_from_db_action(self, query, *params):
+        cursor = self.cursor()
+        cursor.execute(query, params)
+        res_set = cursor.fetchall()
+        res = []
+        for row in res_set:
+            res.append(row)
+        return res
+
+    def get_tm_schedule(self, weekday, parity):
+        query = "SELECT time, subject, type from schedule WHERE weekday=%s " \
+                "and (parity=%s or parity=2)"
+        return self.get_from_db_action(query, weekday, parity)
+
+    def get_queue(self):
+        query = "SELECT name, last_name from queue"
+        return self.get_from_db_action(query)
+
+    def add_to_queue(self, name, last_name):
+        query = "INSERT into queue VALUES(%s, %s)"
+        self.update_db(query, name, last_name)
+
+    def check_queue(self, name, last_name):
+        query = "SELECT last_name from queue WHERE last_name=%s and name=%s"
+        return self.get_from_db(query, last_name, name)
+
+    def delete_from_queue(self, name, last_name):
+        query = "DELETE FROM queue WHERE name=%s and last_name=%s"
+        return self.update_db(query, name, last_name)
+
+    def get_role(self, user_id):
+        query = "SELECT role from users where user_id=%s"
+        return self.get_from_db(query, user_id)
+
+    def delete_all_from_queue(self):
+        query = "DELETE FROM queue"
+        return self.update_db(query)
