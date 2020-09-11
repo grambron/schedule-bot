@@ -12,7 +12,7 @@ class NodeManager:
 
     def get_start_node(self):
         reply = ReplyNode(
-            self.db.get_reply_buttons('MENU'),
+            self.db.get_reply_buttons('MENU', 'USER'),
             self.db.get_reply_text('MENU'),
             'MENU'
         )

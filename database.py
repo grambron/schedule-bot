@@ -62,7 +62,7 @@ class DataBase(metaclass=SingletonMeta):
         self.update_db(query, next_node_id, user_id)
 
     def add_user(self, user_id, username):
-        query = "INSERT INTO users VALUES(%s, 'MENU', %s)"
+        query = "INSERT INTO users VALUES(%s, 'MENU', %s, 'USER')"
         self.update_db(query, user_id, username)
 
     def check(self, user_id):
